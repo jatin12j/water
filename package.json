@@ -4,6 +4,8 @@
   "description": "",
   "main": "script.js",
   "scripts": {
+    "dev": "tailwindcss -i ./src_style.css -o ./style.css --watch",
+    "build": "tailwindcss -i ./src_style.css -o ./style.css --minify",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
