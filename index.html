@@ -1027,23 +1027,6 @@
         });
 
 
-        // === 4. Simple Cart Logic ===
-        let count = 0;
-        function addToCart(qty) {
-            count += qty;
-            const badge = document.getElementById("cartCount");
-            badge.innerText = count;
-            badge.classList.add("scale-150");
-            setTimeout(() => { badge.classList.remove("scale-150"); }, 200);
-            alert("Added " + qty + " item(s) to simulated cart!");
-        }
-        function openCart() {
-            if (count === 0) {
-                alert("Your cart is empty! Get some water.");
-            } else {
-                alert("Cart contains " + count + " items. Checkout process start.");
-            }
-        }
 
         // === 5. Hydration Calculator ===
         function calculateWater() {
@@ -1160,6 +1143,7 @@
             }, 1000);
         }
     </script>
+    <script src="js/script.js"></script>
 </body>
 
 </html>
