@@ -342,30 +342,68 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
-// === 4. Simple Cart Logic ===
+// === 4. Cart Logic (Product Tracking) ===
 let count = 0;
-function addToCart(qty) {
-    count += qty;
-    const badge = document.getElementById("cartCount");
-    badge.innerText = count;
-    badge.classList.add("scale-150");
-    setTimeout(() => { badge.classList.remove("scale-150"); }, 200);
+const cartItems = {}; // { 'product name': { qty, price } }
 
-    // Show WhatsApp button after first item is added
+function addToCart(productName, price) {
+    count += 1;
+
+    // Track the product
+    if (cartItems[productName]) {
+        cartItems[productName].qty += 1;
+    } else {
+        cartItems[productName] = { qty: 1, price: price };
+    }
+
+    // Update badge
+    const badge = document.getElementById('cartCount');
+    if (badge) {
+        badge.innerText = count;
+        badge.classList.add('scale-150');
+        setTimeout(() => { badge.classList.remove('scale-150'); }, 200);
+    }
+
+    // Show WhatsApp button after first item added and update its href
     const waBtn = document.getElementById('waCartBtn');
     if (waBtn && count > 0) {
         waBtn.classList.add('visible');
+        waBtn.href = buildWhatsAppLink();
     }
 
-    // Show a toast-style notification instead of blocking alert
-    showToast(`✅ Item added to cart! Total: ${count} item(s)`);
+    // Toast notification
+    showToast(`🛒 ${productName} added! (${count} total item${count > 1 ? 's' : ''})`);
 }
+
+function buildWhatsAppLink() {
+    let lines = ['Hi Freskey! 👋 I would like to place an order:\n'];
+    let total = 0;
+    Object.entries(cartItems).forEach(([name, { qty, price }]) => {
+        const subtotal = qty * price;
+        total += subtotal;
+        lines.push(`• ${name} × ${qty} = ₹${subtotal}`);
+    });
+    lines.push(`\n🧾 *Total: ₹${total}*`);
+    lines.push('\nPlease confirm availability and delivery details. Thank you!');
+    const msg = encodeURIComponent(lines.join('\n'));
+    return `https://wa.me/917060607763?text=${msg}`;
+}
+
 function openCart() {
     if (count === 0) {
-        alert("Your cart is empty! Get some water.");
-    } else {
-        alert("Cart contains " + count + " items. Checkout process start.");
+        showToast('🛒 Your cart is empty! Add some products first.');
+        return;
     }
+    // Build a simple summary
+    let summary = '🛒 Your Cart:\n';
+    let total = 0;
+    Object.entries(cartItems).forEach(([name, { qty, price }]) => {
+        const subtotal = qty * price;
+        total += subtotal;
+        summary += `• ${name} × ${qty} — ₹${subtotal}\n`;
+    });
+    summary += `\nTotal: ₹${total}\n\nClick the WhatsApp button to send your order!`;
+    alert(summary);
 }
 
 // === 5. Hydration Calculator ===
