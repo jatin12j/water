@@ -2,6 +2,38 @@
    FRESKEY PIYO - MAIN SCRIPT
    ========================================= */
 
+// === DARK MODE / THEME TOGGLE ===
+(function applyThemeOnLoad() {
+    const saved = localStorage.getItem('freskey-theme');
+    if (saved === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+    }
+})();
+
+function toggleTheme() {
+    const html = document.documentElement;
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    if (isDark) {
+        html.removeAttribute('data-theme');
+        localStorage.setItem('freskey-theme', 'light');
+    } else {
+        html.setAttribute('data-theme', 'dark');
+        localStorage.setItem('freskey-theme', 'dark');
+    }
+    updateThemeIcons();
+}
+
+function updateThemeIcons() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const sun = document.getElementById('iconSun');
+    const moon = document.getElementById('iconMoon');
+    if (sun) sun.style.display = isDark ? 'block' : 'none';
+    if (moon) moon.style.display = isDark ? 'none' : 'block';
+}
+
+// Apply icons once DOM is ready
+document.addEventListener('DOMContentLoaded', updateThemeIcons);
+
 // === SEARCH FUNCTIONALITY ===
 // Searchable index: all products and named sections on the page
 const SEARCH_INDEX = [
