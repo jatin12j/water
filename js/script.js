@@ -2,6 +2,132 @@
    FRESKEY PIYO - MAIN SCRIPT
    ========================================= */
 
+// === SEARCH FUNCTIONALITY ===
+// Searchable index: all products and named sections on the page
+const SEARCH_INDEX = [
+    { label: 'Freskey Mini – 200ml Bottles', desc: 'Pack of 24 · Events Special · ₹120', section: 'shop', emoji: '💧' },
+    { label: 'Freskey Travel – 500ml Bottles', desc: 'Pack of 20 · Best Seller · ₹180', section: 'shop', emoji: '💧' },
+    { label: 'Freskey Home – 1 Litre Bottles', desc: 'Pack of 12 · Daily Standard · ₹216', section: 'shop', emoji: '💧' },
+    { label: 'Freskey Jar – 20 Litre Refill', desc: 'Returnable · For Dispensers · ₹90', section: 'shop', emoji: '🫙' },
+    { label: 'Shop / Order Products', desc: 'Browse all Freskey water products', section: 'shop', emoji: '🛒' },
+    { label: 'Our Origin & Water Science', desc: 'pH, TDS, 7-stage purification', section: 'origin', emoji: '🔬' },
+    { label: 'Sustainability – Green Pledge', desc: 'EPR, Collect Crush Create', section: 'responsibility', emoji: '♻️' },
+    { label: 'Partner / Distributor Network', desc: 'Corporates, Retail, HoReCa, Events', section: 'partners', emoji: '🤝' },
+    { label: 'Customer Reviews', desc: 'What our customers say', section: 'reviews', emoji: '⭐' },
+    { label: 'Contact Us / Get Freskey', desc: 'Phone, Email, WhatsApp, Address', section: 'contact', emoji: '📞' },
+    { label: 'Hydration Calculator', desc: 'Calculate your daily water intake', section: null, emoji: '💡', id: 'calcWeight' },
+    { label: 'FAQ – Frequently Asked Questions', desc: 'BPA free? Delivery? Expiry?', section: 'contact', emoji: '❓' },
+    { label: 'Quality Report', desc: 'FSSAI, BIS/ISI certifications', section: null, emoji: '📋', href: 'quality-report.html' },
+    { label: 'Privacy Policy', desc: 'How we use your data', section: null, emoji: '🔒', href: 'privacy.html' },
+    { label: 'Terms of Service', desc: 'Usage terms and conditions', section: null, emoji: '📄', href: 'terms.html' },
+    { label: 'Cancellation & Refund Policy', desc: 'Returns and refunds process', section: null, emoji: '↩️', href: 'refund.html' },
+];
+
+function openSearch() {
+    const overlay = document.getElementById('searchOverlay');
+    if (!overlay) return;
+    overlay.style.opacity = '1';
+    overlay.style.pointerEvents = 'all';
+    document.body.classList.add('overflow-hidden');
+    setTimeout(() => document.getElementById('searchInput')?.focus(), 50);
+}
+
+function closeSearch() {
+    const overlay = document.getElementById('searchOverlay');
+    if (!overlay) return;
+    overlay.style.opacity = '0';
+    overlay.style.pointerEvents = 'none';
+    document.body.classList.remove('overflow-hidden');
+    document.getElementById('searchInput').value = '';
+    document.getElementById('searchResults').innerHTML = '<p class="text-gray-400 text-sm text-center py-6">Start typing to search...</p>';
+}
+
+function runSearch(query) {
+    const resultsBox = document.getElementById('searchResults');
+    if (!query.trim()) {
+        resultsBox.innerHTML = '<p class="text-gray-400 text-sm text-center py-6">Start typing to search...</p>';
+        return;
+    }
+    const q = query.toLowerCase();
+    const hits = SEARCH_INDEX.filter(item =>
+        item.label.toLowerCase().includes(q) || item.desc.toLowerCase().includes(q)
+    );
+
+    if (hits.length === 0) {
+        resultsBox.innerHTML = `<p class="text-gray-500 text-sm text-center py-6">No results found for "<strong>${query}</strong>"</p>`;
+        return;
+    }
+
+    resultsBox.innerHTML = hits.map((item, i) => `
+        <button data-idx="${i}" onclick="selectSearchResult(${i})"
+            class="search-result-item w-full flex items-center gap-4 px-4 py-3 rounded-xl text-left hover:bg-gray-50 transition-colors group">
+            <span class="text-2xl w-9 text-center flex-shrink-0">${item.emoji}</span>
+            <div class="flex-1 min-w-0">
+                <div class="font-semibold text-sm text-gray-800 group-hover:text-brand-primary transition-colors">${item.label}</div>
+                <div class="text-xs text-gray-400 truncate">${item.desc}</div>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2" class="flex-shrink-0"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+    `).join('');
+
+    // Store hits for keyboard nav
+    window._searchHits = hits;
+    window._searchSelected = -1;
+}
+
+function selectSearchResult(idx) {
+    const item = window._searchHits?.[idx] ?? SEARCH_INDEX[idx];
+    if (!item) return;
+    closeSearch();
+
+    if (item.href) {
+        window.location.href = item.href;
+        return;
+    }
+    if (item.id) {
+        const el = document.getElementById(item.id);
+        if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.focus(); }
+        return;
+    }
+    if (item.section) {
+        const section = document.getElementById(item.section);
+        if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
+function handleSearchKey(e) {
+    const items = document.querySelectorAll('.search-result-item');
+    if (!items.length) return;
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        window._searchSelected = Math.min((window._searchSelected ?? -1) + 1, items.length - 1);
+        items.forEach((el, i) => el.classList.toggle('bg-gray-100', i === window._searchSelected));
+        items[window._searchSelected]?.scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        window._searchSelected = Math.max((window._searchSelected ?? 0) - 1, 0);
+        items.forEach((el, i) => el.classList.toggle('bg-gray-100', i === window._searchSelected));
+        items[window._searchSelected]?.scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'Enter' && window._searchSelected >= 0) {
+        e.preventDefault();
+        selectSearchResult(window._searchSelected);
+    } else if (e.key === 'Escape') {
+        closeSearch();
+    }
+}
+
+// Close search on overlay backdrop click
+document.addEventListener('DOMContentLoaded', () => {
+    const overlay = document.getElementById('searchOverlay');
+    if (overlay) {
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) closeSearch(); });
+    }
+    // Global Escape key to close search
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeSearch();
+    });
+});
+
 // 1. Splash Screen Logic
 window.addEventListener('load', () => {
     const splash = document.getElementById('splash-screen');
